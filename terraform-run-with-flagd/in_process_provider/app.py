@@ -7,7 +7,11 @@ from openfeature.contrib.provider.flagd import FlagdProvider
 from openfeature.contrib.provider.flagd.config import ResolverType
 
 # similar to saas-runtime: https://cloud.google.com/saas-runtime/docs/flags/flags-standalone-quickstart.md
-flags_file_path = os.path.join(os.path.dirname(__file__), "flags.json")
+# gs://shun-feature-flags-bucket-test2/demo_flag_definition_json
+flags_file_path = os.path.join("/gcs/test-volume", "demo_flag_definition_json")
+with open("/gcs/test-volume/demo_flag_definition_json", "r") as f:
+    print(f.read())
+
 print(f"current file path: {os.path.dirname(__file__)}")
 print(f"flags file path: {flags_file_path}")
 
