@@ -12,6 +12,7 @@ resource "google_storage_bucket_iam_member" "default_sa_gcs_viewer" {
 
 
 resource "google_cloud_run_v2_service" "default" {
+    provider = google-beta
     deletion_protection = false
     name     = "shun-flagd-test-in-process"
     location = "us-central1"
@@ -31,6 +32,9 @@ resource "google_cloud_run_v2_service" "default" {
             gcs {
                 bucket = "shun-feature-flags-bucket-test2"
                 read_only = true
+                mount_options = [
+                    "metadata-cache-ttl-secs=0",
+                ]
             }
         }
     }
