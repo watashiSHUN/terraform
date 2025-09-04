@@ -10,7 +10,6 @@ resource "google_artifact_registry_repository" "docker_repo" {
   format        = "DOCKER"
 }
 
-# TODO(shunxian): write a file to stoage
 # Reference to the GCS bucket you want flagd to read from
 resource "google_storage_bucket" "flags_bucket" {
   name          = "shun-feature-flags-bucket-test1" # Choose a globally unique bucket name
@@ -20,16 +19,18 @@ resource "google_storage_bucket" "flags_bucket" {
   uniform_bucket_level_access = true
 }
 
+# Upload flag definition to blob storage
+resource "google_storage_bucket_object" "default" {
+ name         = "demo_flag_definition_json"
+ source       = "../flag/demo.flagd.json"
+ content_type = "application/json"
+ bucket       = google_storage_bucket.flags_bucket.id
+}
+
 # Alternatively, if you want to use the default Compute Engine service account
 # Data source for the default Compute Engine service account
 data "google_compute_default_service_account" "default" {
   project = var.project_id
-}
-
-resource "google_storage_bucket_iam_member" "default_sa_gcs_viewer" {
-  bucket = google_storage_bucket.flags_bucket.name
-  role   = "roles/storage.objectViewer"
-  member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }
 
 resource "google_artifact_registry_repository" "ghcr_remote_repo" {

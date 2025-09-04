@@ -4,16 +4,35 @@ provider "google" {
   region  = var.region
 }
 
+locals {
+  bucket_name = "shun-feature-flags-bucket-test1" # TODO(shunxian): make this a variable
+  proxy_repo_name = "ghcr-proxy"
+}
+
+resource "google_service_account" "flagd_sa" {
+  account_id   = "flagd-service-account"
+  display_name = "Service Account for Cloud Run with flagd"
+}
+
+# Allow cloud run to read from GCS
+resource "google_storage_bucket_iam_member" "default_sa_gcs_viewer" {
+  bucket = local.bucket_name
+  role   = "roles/storage.objectViewer"
+  member = "serviceAccount:${google_service_account.flagd_sa.email}"
+}
+
 # Deploy the Cloud Run service
 resource "google_cloud_run_v2_service" "flask_hello_world" {
+  deletion_protection = false
   name     = var.service_name
   location = var.region
   project  = var.project_id
 
   template {
+    service_account = google_service_account.flagd_sa.email
     # ingress container
     containers {
-      image = "${google_artifact_registry_repository.docker_repo.location}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker_repo.repository_id}/${var.service_name}:${var.app_image_tag}"
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.artifact_registry_repo_name}/${var.service_name}:${var.app_image_tag}"
       ports {
         container_port = 8080
       }
@@ -24,13 +43,13 @@ resource "google_cloud_run_v2_service" "flask_hello_world" {
       name  = "flagd-sidecar" # Name for the flagd sidecar container
       # GitHub Container Registry
       # image = "ghcr.io/open-feature/flagd:latest" # Official flagd image
-      image = "${google_artifact_registry_repository.ghcr_remote_repo.location}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.ghcr_remote_repo.repository_id}/open-feature/flagd:latest"
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/${local.proxy_repo_name}/open-feature/flagd:latest"
       # NOTE: sidecar cannot have exposed port...https://screenshot.googleplex.com/4HoHSZwxGCqtNZu
 
       args = [
       "start",
       "--port", "8013", 
-      "--uri", "gs://${google_storage_bucket.flags_bucket.name}/demo.flagd.json", # Point to your GCS file
+      "--uri", "gs://${local.bucket_name}/demo_flag_definition_json", # Point to your GCS file
       # "--interval", "60s" # Optional: Poll GCS for updates every 60 seconds
       ]
 
@@ -65,6 +84,4 @@ resource "google_cloud_run_v2_service" "flask_hello_world" {
   #     template[0].containers[0].image, # Ignore changes to image to allow manual updates or CI/CD to handle it
   #   ]
   # }
-
-  depends_on = [google_project_service.run_api]
 }

@@ -1,5 +1,5 @@
 # 1. Run simple test
-curl -X GET "https://flask-hello-world-402376532274.us-central1.run.app" -H "Authorization: bearer $(gcloud auth print-identity-token)"
+curl -X GET "https://flask-hello-world-49654637999.us-central1.run.app" -H "Authorization: bearer $(gcloud auth print-identity-token)"
 
 # Change the flag
 

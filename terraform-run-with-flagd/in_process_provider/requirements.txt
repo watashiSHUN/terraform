@@ -1,0 +1,6 @@
+Flask==3.0.3
+gunicorn==22.0.0 # Recommended for production WSGI server
+
+openfeature-sdk==0.8.1
+openfeature-provider-flagd==0.2.4
+typing_extensions==4.12.0

@@ -1,0 +1,12 @@
+{
+  "flags": {
+    "welcome-message": {
+      "state": "ENABLED",
+      "variants": {
+        "on": "Welcome to our new app!",
+        "off": "Welcome back!"
+      },
+      "defaultVariant": "off"
+    }
+  }
+}
